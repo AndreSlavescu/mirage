@@ -36,6 +36,51 @@ using std::string;
 namespace kn = mirage::kernel;
 namespace tb = mirage::threadblock;
 
+// Helper function to check if a threadblock graph contains matmul operations
+// Used to determine if WGMMA constraints apply
+static bool has_matmul_op(tb::Graph const &g) {
+  for (tb::TBOperator const *op : g.operators) {
+    if (op->op_type == type::TB_MATMUL_OP ||
+        op->op_type == type::TB_CONCAT_THEN_MATMUL_OP) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Helper function to check if a threadblock graph is purely element-wise
+// (no matmul, no complex reduction patterns)
+static bool is_elementwise_graph(tb::Graph const &g) {
+  for (tb::TBOperator const *op : g.operators) {
+    switch (op->op_type) {
+      // Input/Output ops are always allowed
+      case type::TB_INPUT_OP:
+      case type::TB_OUTPUT_OP:
+      // Element-wise unary ops
+      case type::TB_EXP_OP:
+      case type::TB_SILU_OP:
+      case type::TB_GELU_OP:
+      case type::TB_RELU_OP:
+      case type::TB_CLAMP_OP:
+      case type::TB_SQUARE_OP:
+      case type::TB_SQRT_OP:
+      // Element-wise binary ops
+      case type::TB_ADD_OP:
+      case type::TB_MUL_OP:
+      case type::TB_DIV_OP:
+      case type::TB_SUB_OP:
+      case type::TB_POW_OP:
+      // Simple accumulation (no reduction)
+      case type::TB_FORLOOP_ACCUM_NO_RED_OP:
+        break;
+      default:
+        // Matmul, reduction, or other complex ops
+        return false;
+    }
+  }
+  return true;
+}
+
 namespace get_layout_detail {
 
 // Get a CuTe layout from dims and strides
@@ -317,13 +362,44 @@ CustomOPTranspileResult
   int cur_custom_kernel_idx = custom_kernel_idx_counter++;
   string func_name = fmt("custom_kernel_$", cur_custom_kernel_idx);
 
-  if (GPU_CC::H100 > config.target_cc ||
-      (config::MAX_NUM_WARP_GROUPS <
-       config.num_consumer_wgs + config.num_producer_wgs) ||
-      (num_threads !=
-           (config.num_consumer_wgs + config.num_producer_wgs) * 128 &&
-       (g.forloop_range > 1))) {
-    assert(false && "compiler assertion failure");
+  // Check if this graph contains matmul operations
+  bool graph_has_matmul = has_matmul_op(g);
+  
+  // For element-wise graphs (no matmul), use the generic transpiler
+  // which doesn't have WGMMA constraints
+  if (!graph_has_matmul && is_elementwise_graph(g)) {
+    // Fall back to generic transpiler for element-wise operations
+    // This allows more flexible thread configurations
+    return transpile_kn_custom_op(op);
+  }
+
+  // Infer warp group count from block_dim for WGMMA-based operations
+  // Each warp group has 128 threads (4 warps * 32 threads)
+  int inferred_total_wgs = num_threads / 128;
+  
+  // Validate that num_threads is a multiple of 128 (required for WGMMA)
+  if (num_threads % 128 != 0 || inferred_total_wgs < 1 ||
+      inferred_total_wgs > config::MAX_NUM_WARP_GROUPS) {
+    return CustomOPTranspileResult{
+        CUDA_T_CONFIG_ERROR, func_name, 0, 0, "", {}};
+  }
+  
+  // Update config to match the inferred warp group count
+  // Use at least 1 producer warp group, rest are consumers
+  int inferred_producer_wgs = 1;
+  int inferred_consumer_wgs = inferred_total_wgs - 1;
+  if (inferred_consumer_wgs < 1) {
+    // For single warp group, use it as both producer and consumer
+    inferred_consumer_wgs = 1;
+    inferred_producer_wgs = 0;
+  }
+  
+  // Override config with inferred values for this graph
+  config.num_producer_wgs = inferred_producer_wgs;
+  config.num_consumer_wgs = inferred_consumer_wgs;
+
+  // For graphs with matmul operations, enforce architecture constraint
+  if (GPU_CC::H100 > config.target_cc) {
     return CustomOPTranspileResult{
         CUDA_T_CONFIG_ERROR, func_name, 0, 0, "", {}};
   }

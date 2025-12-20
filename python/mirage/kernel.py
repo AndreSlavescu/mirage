@@ -22,6 +22,7 @@ MAX_THREADS = os.cpu_count()
 HARD_CODE = """
 #include <Python.h>
 #include <cuda_runtime.h>
+#include <vector>
 
 static PyObject *launch(PyObject *self, PyObject *args) {
   PyObject *input_list, *output_list, *py_buffer, *py_stream, *py_profiler_buffer;
@@ -427,6 +428,7 @@ class KNGraph:
         # TODO, add profling for Ampere later to show gpu wave
         profiling = kwargs.get("profiling", False)
         enable_online_softmax = kwargs.get("enable_online_softmax", False)
+        enable_pdl = kwargs.get("enable_pdl", False)
 
         result = generate_cuda_program(
             self.cygraph,
@@ -436,7 +438,13 @@ class KNGraph:
             pipeline_stages=pipeline_stages,
             profiling=profiling,
             enable_online_softmax=enable_online_softmax,
+            enable_pdl=enable_pdl,
         )
+
+        if result.get("pdl_enabled", False):
+            print(f"PDL analysis: {result['pdl_chains_count']} chains identified, "
+                  f"{result['pdl_kernels_optimized']} ops in chains "
+                  f"(PDL applies to KN_CUSTOMIZED_OP only)")
         if result["max_smem_size"] > get_shared_memory_capacity(target_cc):
             # the transpiled kernel exceeds shared memory limit
             print(
@@ -454,6 +462,16 @@ class KNGraph:
         MIRAGE_ROOT, INCLUDE_PATH, DEPS_PATH = get_key_paths()
         # if True:
         #     tempdir = './test/'
+
+        # Check if transpilation failed (empty code)
+        if not result["code"] or result["code"].strip() == "":
+            self._is_compiled = True
+            self._valid_cuda_kernels = False
+            self._error_message = "Transpilation failed - empty code generated"
+            if async_:
+                return Handle([], None)
+            else:
+                return None
 
         tempdir_obj = tempfile.TemporaryDirectory()
         tempdir = tempdir_obj.name
@@ -629,14 +647,17 @@ class KNGraph:
                             ender = torch.cuda.Event(enable_timing=True)
                             new_g = g
                             if len(handles) == MAX_THREADS:
-                                handles.popleft().wait()
+                                h = handles.popleft()
+                                if h is not None:
+                                    h.wait()
                             handle = new_g.compile(
                                 async_=True,
                                 inputs=input_tensors,
                                 pipeline_stages=pipeline_stages,
                                 num_warp_groups=num_warp_groups,
                             )
-                            handles.append(handle)
+                            if handle is not None:
+                                handles.append(handle)
             else:
                 for idx, g in enumerate(all_graphs):
                     dtensors = g.cygraph.get_input_dtensors()
@@ -655,11 +676,16 @@ class KNGraph:
                     starter = torch.cuda.Event(enable_timing=True)
                     ender = torch.cuda.Event(enable_timing=True)
                     if len(handles) == MAX_THREADS:
-                        handles.popleft().wait()
+                        h = handles.popleft()
+                        if h is not None:
+                            h.wait()
                     handle = g.compile(async_=True, inputs=input_tensors)
-                    handles.append(handle)
+                    if handle is not None:
+                        handles.append(handle)
             while handles:
-                handles.popleft().wait()
+                h = handles.popleft()
+                if h is not None:
+                    h.wait()
             for idx, g in enumerate(all_graphs):
                 dtensors = g.cygraph.get_input_dtensors()
                 input_tensors = list()

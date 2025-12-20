@@ -42,6 +42,22 @@ struct TranspilerConfig {
 
   // Whether to enable graph rewriting
   bool enable_online_softmax = false;
+
+  // Programmatic Dependent Launch (PDL) settings
+  // PDL eliminates CPU-side launch latency by allowing kernels to trigger
+  // dependent kernels directly on the GPU Command Processor
+  // Only supported on SM90 (Hopper) and SM100 (Blackwell)
+  bool enable_pdl = false;
+  bool pdl_enable_global_barrier = true;
+  bool pdl_fallback_on_unsupported = true;
+
+  bool is_pdl_supported() const {
+    return enable_pdl && (target_cc == 90 || target_cc == 100);
+  }
+
+  bool is_pdl_architecture() const {
+    return target_cc == 90 || target_cc == 100;
+  }
 };
 
 // Directive for an output tensor
@@ -78,6 +94,12 @@ struct TranspileResult {
 
   // Directives for output tensors
   std::vector<OutputTensorDirective> output_directives;
+
+  // PDL optimization results
+  bool pdl_enabled = false;
+  size_t pdl_chains_count = 0;
+  size_t pdl_kernels_optimized = 0;
+  size_t pdl_buffer_size = 0;
 };
 
 struct TiledMMA {

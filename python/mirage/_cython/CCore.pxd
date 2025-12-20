@@ -368,6 +368,9 @@ cdef extern from "mirage/transpiler/transpile.h" namespace "mirage::transpiler":
         int pipeline_stages;
         bool profiling;
         bool enable_online_softmax;
+        bool enable_pdl;
+        bool pdl_enable_global_barrier;
+        bool pdl_fallback_on_unsupported;
     ctypedef struct OutputTensorDirective:
         size_t alloc_size
         vector[int] shape
@@ -378,6 +381,10 @@ cdef extern from "mirage/transpiler/transpile.h" namespace "mirage::transpiler":
         size_t max_smem_size
         size_t profiler_buf_size
         vector[OutputTensorDirective] output_directives
+        bool pdl_enabled
+        size_t pdl_chains_count
+        size_t pdl_kernels_optimized
+        size_t pdl_buffer_size
     cdef TranspileResult transpile(const CppKNGraph *graph,
                        const TranspilerConfig config,
                        vector[vector[size_t]] input_strides)

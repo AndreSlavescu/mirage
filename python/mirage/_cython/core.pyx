@@ -1251,12 +1251,15 @@ def search(CyKNGraph input_graph, *, str backend = "cuda", int max_num_new_graph
 
 # Generate CUDA program for a uGraph
 # Return (CUDA code, buffer size in bytes)
-def generate_cuda_program(CyKNGraph input_graph, *, int target_cc, list input_strides, int num_warp_groups = -1, int pipeline_stages = -1, bool profiling = False, bool enable_online_softmax = False) -> dict:
+def generate_cuda_program(CyKNGraph input_graph, *, int target_cc, list input_strides, int num_warp_groups = -1, int pipeline_stages = -1, bool profiling = False, bool enable_online_softmax = False, bool enable_pdl = False) -> dict:
     # Set transpiler_config
     cdef TranspilerConfig transpiler_config
     transpiler_config.target_cc = target_cc
     transpiler_config.profiling = profiling
     transpiler_config.enable_online_softmax = enable_online_softmax
+    transpiler_config.enable_pdl = enable_pdl
+    transpiler_config.pdl_enable_global_barrier = True
+    transpiler_config.pdl_fallback_on_unsupported = True
 
     if num_warp_groups != -1 and pipeline_stages != -1:
         transpiler_config.num_producer_wgs = 1;
@@ -1276,8 +1279,6 @@ def generate_cuda_program(CyKNGraph input_graph, *, int target_cc, list input_st
 
     # Get output directives
     cdef list[dict] output_directives = list()
-    # cdef list[int] cur_output_shape
-    # cdef list[int] cur_output_strides
     for i in range(len(result.output_directives)):
         cur_output_shape = list()
         cur_output_strides = list()
@@ -1296,7 +1297,11 @@ def generate_cuda_program(CyKNGraph input_graph, *, int target_cc, list input_st
         "buf_size": result.buf_size,
         "max_smem_size": result.max_smem_size,
         "profiler_buf_size": result.profiler_buf_size,
-        "output_directives": output_directives
+        "output_directives": output_directives,
+        "pdl_enabled": result.pdl_enabled,
+        "pdl_chains_count": result.pdl_chains_count,
+        "pdl_kernels_optimized": result.pdl_kernels_optimized,
+        "pdl_buffer_size": result.pdl_buffer_size
     }
 
 def generate_nki_program(CyKNGraph input_graph, *, int target_cc) -> dict:

@@ -30,6 +30,8 @@ std::vector<type::TBOperatorType> DimStrategy::get_tbop_cand() {
 std::vector<dim3>
     DimStrategy::get_grid_dim_cand(std::vector<DTensor> const &tensors) {
 
+  auto is_power_of_2 = [](unsigned int x) { return x > 0 && (x & (x - 1)) == 0; };
+
   auto generate_1d_grids = [&](std::vector<int> const &dims) {
     std::vector<dim3> cands;
 #ifdef MIRAGE_BACKEND_USE_CUDA
@@ -39,7 +41,8 @@ std::vector<dim3>
 #endif
       for (int dim : dims) {
         if (dim % x == 0) {
-          cands.push_back({dim / x, 1, 1});
+          unsigned int result = dim / x;
+          cands.push_back({result, 1, 1});
         }
       }
     }
@@ -55,7 +58,8 @@ std::vector<dim3>
 #endif
       for (int dim : dims) {
         if (dim % y == 0) {
-          cands.push_back({x, dim / y, 1});
+          unsigned int result = dim / y;
+          cands.push_back({(unsigned int)x, result, 1});
         }
       }
     }
@@ -75,7 +79,7 @@ std::vector<dim3>
     for (size_t x : dim_to_try) {
       for (size_t y : dim_to_try) {
         if (x >= y) {
-          cands.push_back({x, y, 1});
+          cands.push_back({(unsigned int)x, (unsigned int)y, 1});
         }
       }
     }
@@ -150,7 +154,16 @@ std::vector<dim3>
     DimStrategy::get_block_dim_cand(std::vector<DTensor> const &tensors,
                                     dim3 grid_dim) {
   std::vector<dim3> cands = config.block_dim_to_explore;
-  cands.push_back({128, 1, 1});
+  // Add Hopper-compatible block dimensions (multiples of 128 for warp groups)
+  // 128 = 1 warp group, 256 = 2 warp groups, etc.
+  // These satisfy the Hopper transpiler constraint:
+  //   num_threads == (num_consumer_wgs + num_producer_wgs) * 128
+  cands.push_back({128, 1, 1});   // 1 warp group
+  cands.push_back({256, 1, 1});   // 2 warp groups
+  cands.push_back({384, 1, 1});   // 3 warp groups
+  cands.push_back({512, 1, 1});   // 4 warp groups (MAX_NUM_WARP_GROUPS)
+  // Deduplicate
+  cands = deduplicate(cands);
   if (config.randomized_branches) {
     std::random_shuffle(cands.begin(), cands.end());
   }
@@ -377,6 +390,10 @@ std::vector<int> DimStrategy::get_forloop_range_cand(
   }
 
   std::vector<int> forloop_range_to_explore = config.frange_to_explore;
+  // Pre-filter to power-of-2 values for CUTLASS compatibility
+  forloop_range_to_explore = filter(forloop_range_to_explore, [](int x) {
+    return x > 0 && (x & (x - 1)) == 0;
+  });
 #ifdef MIRAGE_BACKEND_USE_NKI
   forloop_range_to_explore.clear();
   for (size_t i = 0; i < input_tensors.size(); ++i) {
@@ -430,6 +447,11 @@ std::vector<int> DimStrategy::get_forloop_range_cand(
       results.push_back(x);
     }
   }
+  // Filter to power-of-2 values for better CUTLASS layout compatibility
+  // Non-power-of-2 forloop_range can cause "Shape Divisibility Condition" errors
+  results = filter(results, [](int x) {
+    return x > 0 && (x & (x - 1)) == 0;
+  });
   if (config.randomized_branches) {
     std::random_shuffle(results.begin(), results.end());
   }

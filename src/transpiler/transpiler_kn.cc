@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <unordered_set>
 
+#include "mirage/transpiler/pdl/pdl.h"
 #include "mirage/transpiler/utils.h"
 #include "mirage/type.h"
 
@@ -332,7 +333,25 @@ static void generate_tma_code_blackwell(CodeKeeper &exec,
 TranspileResult Transpiler::transpile_ugraph() {
   size_t max_smem_size = 0;
   size_t profiler_buf_size = 0;
-  // Generate header
+
+  pdl::PDLAnalysisResult pdl_result;
+  bool pdl_active = false;
+
+  if (config.is_pdl_supported()) {
+    pdl::PDLConfig pdl_config;
+    pdl_config.target_cc = config.target_cc;
+    pdl_config.enable_global_barrier = config.pdl_enable_global_barrier;
+    pdl_config.fallback_on_unsupported = config.pdl_fallback_on_unsupported;
+
+    if (config.target_cc >= 100) {
+      pdl_config.mode = pdl::PDLMode::PROGRAMMATIC_DEPENDENT_LAUNCH;
+    } else if (config.target_cc >= 90) {
+      pdl_config.mode = pdl::PDLMode::PROGRAMMATIC_STREAM_SERIALIZATION;
+    }
+
+    pdl_result = pdl::run_pdl_pass(g.get(), pdl_config);
+    pdl_active = pdl_result.success && !pdl_result.plan.chains.empty();
+  }
 
   CodeKeeper header;
   header.e("#define NUM_GPUS $", num_gpus);
@@ -345,28 +364,52 @@ TranspileResult Transpiler::transpile_ugraph() {
   header.e("#include \"runtime.h\"");
   header.e("using namespace cute;");
 
-  CodeKeeper custom_kernels; // This keeps all code for custom kernels
-                             // (KNCustomizedOp)
-  CodeKeeper init; // This keeps all code in the `_init` function (e.g.
-                   // cudaFuncSetAttribute)
-  CodeKeeper exec; // This keeps all code in the `_execute_mugraph` function
+  if (pdl_active) {
+    header.e("");
+    header.e("// PDL (Programmatic Dependent Launch) runtime support");
+    header.e(pdl::get_pdl_runtime_header());
+  }
+
+  CodeKeeper custom_kernels;
+  CodeKeeper init;
+  CodeKeeper exec;
 
   CodeKeeper hopper_tma;
 
   init.e("static void _init() {");
+
+  if (pdl_active) {
+    init.e("  // Initialize PDL synchronization slots");
+  }
+
   exec.e(
       "static void _execute_mugraph(std::vector<void const *> input_tensors, "
       "std::vector<void*> output_tensors, "
       "void* buf, cudaStream_t stream, void * profiler_buffer){");
+
+  if (pdl_active) {
+    exec.e("// PDL enabled: using cudaLaunchKernelEx for dependent kernels");
+    exec.e("");
+  }
+
+  size_t kernel_idx = 0;
   for (kn::KNOperator *const op : g->operators) {
     std::string op_type_str;
     to_json(op_type_str, op->op_type);
     exec.e("{");
     exec.e("// OP type: $", op_type_str);
+
+    bool is_compute_kernel = (op->op_type != type::KN_INPUT_OP &&
+                              op->op_type != type::KN_OUTPUT_OP);
+
+    bool use_pdl_launch = false;
+    if (pdl_active && is_compute_kernel) {
+      use_pdl_launch = pdl_result.plan.has_chain_for_kernel(kernel_idx);
+    }
+
     switch (op->op_type) {
       case type::KNOperatorType::KN_INPUT_OP:
       case type::KNOperatorType::KN_OUTPUT_OP: {
-        // Input/Output op
         break;
       }
       case type::KNOperatorType::KN_MATMUL_OP: {
@@ -817,10 +860,15 @@ TranspileResult Transpiler::transpile_ugraph() {
           }
 
           if (config.target_cc == GPU_CC::H100) {
-            exec.e("$<<<grid_dim, block_dim, smem_size, stream>>>($ $);",
-                   result.func_name,
-                   tmas,
-                   ptr_names);
+            if (use_pdl_launch) {
+              exec.e(pdl::generate_pdl_kernel_launch_with_tma(
+                  result.func_name, "grid_dim", "block_dim", "smem_size",
+                  "stream", tmas, my_to_string(ptr_names), true,
+                  config.target_cc));
+            } else {
+              exec.e("$<<<grid_dim, block_dim, smem_size, stream>>>($ $);",
+                     result.func_name, tmas, ptr_names);
+            }
           } else if (config.target_cc == GPU_CC::B200) {
             exec.e("cutlass::ClusterLaunchParams params = {grid_dim, "
                    "block_dim, cluster_dim, $};",
@@ -835,9 +883,14 @@ TranspileResult Transpiler::transpile_ugraph() {
                  "cudaFuncAttributeMaxDynamicSharedMemorySize, $);",
                  result.func_name,
                  result.smem_size);
-          exec.e("$<<<grid_dim, block_dim, smem_size, stream>>>( $);",
-                 result.func_name,
-                 ptr_names);
+          if (use_pdl_launch) {
+            exec.e(pdl::generate_pdl_kernel_launch(
+                result.func_name, "grid_dim", "block_dim", "smem_size",
+                "stream", my_to_string(ptr_names), true, config.target_cc));
+          } else {
+            exec.e("$<<<grid_dim, block_dim, smem_size, stream>>>( $);",
+                   result.func_name, ptr_names);
+          }
         }
 
         custom_kernels.e(result.code);
@@ -849,6 +902,11 @@ TranspileResult Transpiler::transpile_ugraph() {
                          std::to_string(int(op->op_type)))
                             .c_str());
     }
+
+    if (is_compute_kernel) {
+      kernel_idx++;
+    }
+
     exec.e("}");
   }
   init.e("}");
@@ -872,12 +930,22 @@ TranspileResult Transpiler::transpile_ugraph() {
         vector<size_t>(meta.strides, meta.strides + dtensor.num_dims)});
   }
 
-  return TranspileResult{CUDA_T_SUCCESS,
-                         code,
-                         this->d_buf_size,
-                         max_smem_size,
-                         profiler_buf_size,
-                         output_directives};
+  TranspileResult result;
+  result.error_type = CUDA_T_SUCCESS;
+  result.code = code;
+  result.buf_size = this->d_buf_size;
+  result.max_smem_size = max_smem_size;
+  result.profiler_buf_size = profiler_buf_size;
+  result.output_directives = output_directives;
+
+  if (pdl_active) {
+    result.pdl_enabled = true;
+    result.pdl_chains_count = pdl_result.plan.chains.size();
+    result.pdl_kernels_optimized = pdl_result.kernels_optimized;
+    result.pdl_buffer_size = 0;
+  }
+
+  return result;
 }
 
 } // namespace transpiler
