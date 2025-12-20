@@ -1,0 +1,314 @@
+{
+  "timestamp": "2025-12-20T21:53:24.990614",
+  "gpu": {
+    "name": "NVIDIA H100 80GB HBM3",
+    "compute_capability": 90,
+    "total_memory_gb": 79.09661865234375,
+    "sm_count": 132
+  },
+  "experiments": {
+    "tensor_size_characterization": [
+      {
+        "experiment": "tensor_size",
+        "config": {
+          "size": 256,
+          "elements": 16384
+        },
+        "latency_baseline_us": 18.56000026067098,
+        "latency_optimized_us": 18.526666561762493,
+        "speedup_pct": 0.17959966832069707,
+        "pdl_chains": 1,
+        "pdl_ops": 3,
+        "std_baseline_us": 0.02670909729641273,
+        "std_optimized_us": 0.274099188417928
+      },
+      {
+        "experiment": "tensor_size",
+        "config": {
+          "size": 1024,
+          "elements": 65536
+        },
+        "latency_baseline_us": 21.80783947308858,
+        "latency_optimized_us": 18.937546809514362,
+        "speedup_pct": 13.161747027330387,
+        "pdl_chains": 1,
+        "pdl_ops": 3,
+        "std_baseline_us": 4.96176654161773,
+        "std_optimized_us": 0.9437539835230799
+      },
+      {
+        "experiment": "tensor_size",
+        "config": {
+          "size": 4096,
+          "elements": 262144
+        },
+        "latency_baseline_us": 18.091466426849365,
+        "latency_optimized_us": 18.006240129470825,
+        "speedup_pct": 0.47108562328621706,
+        "pdl_chains": 1,
+        "pdl_ops": 3,
+        "std_baseline_us": 0.1275982277737117,
+        "std_optimized_us": 0.2938849464848798
+      },
+      {
+        "experiment": "tensor_size",
+        "config": {
+          "size": 16384,
+          "elements": 1048576
+        },
+        "latency_baseline_us": 18.070186773935955,
+        "latency_optimized_us": 17.88266658782959,
+        "speedup_pct": 1.037732417779102,
+        "pdl_chains": 1,
+        "pdl_ops": 3,
+        "std_baseline_us": 0.2549520873973334,
+        "std_optimized_us": 0.1687703038222855
+      },
+      {
+        "experiment": "tensor_size",
+        "config": {
+          "size": 65536,
+          "elements": 4194304
+        },
+        "latency_baseline_us": 41.93504015604655,
+        "latency_optimized_us": 41.93525314331055,
+        "speedup_pct": -0.0005078980804768682,
+        "pdl_chains": 1,
+        "pdl_ops": 3,
+        "std_baseline_us": 0.017649334256861944,
+        "std_optimized_us": 0.02604520729500066
+      }
+    ],
+    "chain_length": [
+      {
+        "experiment": "chain_length",
+        "config": {
+          "chain_length": 2,
+          "size": 8192
+        },
+        "latency_baseline_us": 16.81349317232768,
+        "latency_optimized_us": 15.9879469871521,
+        "speedup_pct": 4.910021830170877,
+        "pdl_chains": 1,
+        "pdl_ops": 2,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "chain_length",
+        "config": {
+          "chain_length": 4,
+          "size": 8192
+        },
+        "latency_baseline_us": 19.59231972694397,
+        "latency_optimized_us": 19.773760239283245,
+        "speedup_pct": -0.9260797846706871,
+        "pdl_chains": 1,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "chain_length",
+        "config": {
+          "chain_length": 6,
+          "size": 8192
+        },
+        "latency_baseline_us": 22.832480271657307,
+        "latency_optimized_us": 22.524105707804363,
+        "speedup_pct": 1.350595993882184,
+        "pdl_chains": 1,
+        "pdl_ops": 6,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "chain_length",
+        "config": {
+          "chain_length": 8,
+          "size": 8192
+        },
+        "latency_baseline_us": 26.408159732818604,
+        "latency_optimized_us": 26.307093302408855,
+        "speedup_pct": 0.3827090998853221,
+        "pdl_chains": 1,
+        "pdl_ops": 8,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "chain_length",
+        "config": {
+          "chain_length": 12,
+          "size": 8192
+        },
+        "latency_baseline_us": 39.4269331296285,
+        "latency_optimized_us": 39.399627049764,
+        "speedup_pct": 0.06925742810054383,
+        "pdl_chains": 1,
+        "pdl_ops": 12,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      }
+    ],
+    "operator_patterns": [
+      {
+        "experiment": "operator_pattern",
+        "config": {
+          "pattern": "silu_mul",
+          "batch": 64,
+          "hidden": 2048
+        },
+        "latency_baseline_us": 16.289386749267578,
+        "latency_optimized_us": 16.50597294171651,
+        "speedup_pct": -1.3296153856661985,
+        "pdl_chains": 1,
+        "pdl_ops": 2,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "operator_pattern",
+        "config": {
+          "pattern": "gelu_add",
+          "batch": 64,
+          "hidden": 2048
+        },
+        "latency_baseline_us": 16.23408039410909,
+        "latency_optimized_us": 16.32431983947754,
+        "speedup_pct": -0.5558642262311054,
+        "pdl_chains": 1,
+        "pdl_ops": 2,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "operator_pattern",
+        "config": {
+          "pattern": "residual",
+          "batch": 64,
+          "hidden": 2048
+        },
+        "latency_baseline_us": 16.2390931447347,
+        "latency_optimized_us": 16.194613377253216,
+        "speedup_pct": 0.27390548896448436,
+        "pdl_chains": 1,
+        "pdl_ops": 2,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      }
+    ],
+    "model_shapes": [
+      {
+        "experiment": "model_shape",
+        "config": {
+          "model": "llama-7b",
+          "batch": 1,
+          "seq": 256
+        },
+        "latency_baseline_us": 173.82501602172852,
+        "latency_optimized_us": 174.06357447306314,
+        "speedup_pct": -0.13724057491518116,
+        "pdl_chains": 2,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "model_shape",
+        "config": {
+          "model": "llama-7b",
+          "batch": 8,
+          "seq": 256
+        },
+        "latency_baseline_us": 918.2750956217448,
+        "latency_optimized_us": 932.5236765543619,
+        "speedup_pct": -1.5516680132732745,
+        "pdl_chains": 2,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "model_shape",
+        "config": {
+          "model": "qwen-7b",
+          "batch": 1,
+          "seq": 256
+        },
+        "latency_baseline_us": 173.31616083780924,
+        "latency_optimized_us": 173.41514587402344,
+        "speedup_pct": -0.05711240990782921,
+        "pdl_chains": 2,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "model_shape",
+        "config": {
+          "model": "qwen-7b",
+          "batch": 8,
+          "seq": 256
+        },
+        "latency_baseline_us": 927.7053070068359,
+        "latency_optimized_us": 927.9452260335287,
+        "speedup_pct": -0.02586155591443419,
+        "pdl_chains": 2,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      }
+    ],
+    "cuda_graphs_comparison": [
+      {
+        "experiment": "cuda_graphs_comparison",
+        "config": {
+          "size": 4096,
+          "chain_length": 4,
+          "pytorch_eager_us": 19.274879693984985,
+          "cuda_graph_us": 8.671200275421143
+        },
+        "latency_baseline_us": 19.723306894302368,
+        "latency_optimized_us": 19.400053421656292,
+        "speedup_pct": 1.6389415546713273,
+        "pdl_chains": 1,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "cuda_graphs_comparison",
+        "config": {
+          "size": 16384,
+          "chain_length": 4,
+          "pytorch_eager_us": 18.783680200576782,
+          "cuda_graph_us": 10.81455945968628
+        },
+        "latency_baseline_us": 19.342346986134846,
+        "latency_optimized_us": 19.27557349205017,
+        "speedup_pct": 0.3452191925444213,
+        "pdl_chains": 1,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      },
+      {
+        "experiment": "cuda_graphs_comparison",
+        "config": {
+          "size": 65536,
+          "chain_length": 4,
+          "pytorch_eager_us": 27.174880504608154,
+          "cuda_graph_us": 23.3787202835083
+        },
+        "latency_baseline_us": 55.78223864237467,
+        "latency_optimized_us": 55.80869356791178,
+        "speedup_pct": -0.047425356495128246,
+        "pdl_chains": 1,
+        "pdl_ops": 4,
+        "std_baseline_us": 0.0,
+        "std_optimized_us": 0.0
+      }
+    ]
+  }
+}

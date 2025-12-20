@@ -1,0 +1,119 @@
+Initializing...
+Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)======================================================================
+                      PDL Paper Experiment Suite                      
+======================================================================
+GPU: NVIDIA H100 80GB HBM3
+Compute Capability: SM90
+Output: /root/Desktop/projects/mirage/benchmark/pdl/paper_results
+======================================================================
+
+============================================================
+[1/5] Running: tensor_size_characterization
+============================================================
+  [1/5] Size 256... PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
++0.18%
+  [2/5] Size 1024... PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
++13.16%
+  [3/5] Size 4096... PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
++0.47%
+  [4/5] Size 16384... PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
++1.04%
+  [5/5] Size 65536... PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
+PDL analysis: 1 chains identified, 3 ops in chains
+-0.00%
+  Best speedup: 13.16% at {'size': 1024, 'elements': 65536}
+
+============================================================
+[2/5] Running: chain_length
+============================================================
+  [1/5] Chain 2... PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
++4.91%
+  [2/5] Chain 4... PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+-0.93%
+  [3/5] Chain 6... PDL analysis: 1 chains identified, 6 ops in chains
+PDL analysis: 1 chains identified, 6 ops in chains
+PDL analysis: 1 chains identified, 6 ops in chains
++1.35%
+  [4/5] Chain 8... PDL analysis: 1 chains identified, 8 ops in chains
+PDL analysis: 1 chains identified, 8 ops in chains
+PDL analysis: 1 chains identified, 8 ops in chains
++0.38%
+  [5/5] Chain 12... PDL analysis: 1 chains identified, 12 ops in chains
+PDL analysis: 1 chains identified, 12 ops in chains
+PDL analysis: 1 chains identified, 12 ops in chains
++0.07%
+  Best speedup: 4.91% at {'chain_length': 2, 'size': 8192}
+
+============================================================
+[3/5] Running: operator_patterns
+============================================================
+  [1/3] silu_mul... PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+-1.33%
+  [2/3] gelu_add... PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+-0.56%
+  [3/3] residual... PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
++0.27%
+  No significant positive speedups
+
+============================================================
+[4/5] Running: model_shapes
+============================================================
+  [1/4] llama-7b batch=1... PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+-0.14%
+  [2/4] llama-7b batch=8... PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+-1.55%
+  [3/4] qwen-7b batch=1... PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+-0.06%
+  [4/4] qwen-7b batch=8... PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+PDL analysis: 2 chains identified, 4 ops in chains
+-0.03%
+  No significant positive speedups
+
+============================================================
+[5/5] Running: cuda_graphs_comparison
+============================================================
+  [1/3] size=4096, chain=4... PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
++1.64%
+  [2/3] size=16384, chain=4... PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
++0.35%
+  [3/3] size=65536, chain=4... PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+-0.05%
+  Best speedup: 1.64% at {'size': 4096, 'chain_length': 4, 'pytorch_eager_us': 19.274879693984985, 'cuda_graph_us': 8.671200275421143}
+
+Results saved to: /root/Desktop/projects/mirage/benchmark/pdl/paper_results/paper_results.json
+
+======================================================================
+                         EXPERIMENT COMPLETE                          
+======================================================================

@@ -1,0 +1,16 @@
+\begin{table}[t]
+\centering
+\caption{PDL Speedup vs Tensor Size}
+\label{tab:tensor_size}
+\begin{tabular}{rrrrr}
+\toprule
+Elements & Baseline ($\mu$s) & PDL ($\mu$s) & Speedup (\%) \\
+\midrule
+16,384 & 18.6 & 18.5 & +0.18 \\
+65,536 & 21.8 & 18.9 & +13.16 \\
+262,144 & 18.1 & 18.0 & +0.47 \\
+1,048,576 & 18.1 & 17.9 & +1.04 \\
+4,194,304 & 41.9 & 41.9 & -0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}

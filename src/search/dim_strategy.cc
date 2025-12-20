@@ -42,7 +42,9 @@ std::vector<dim3>
       for (int dim : dims) {
         if (dim % x == 0) {
           unsigned int result = dim / x;
-          cands.push_back({result, 1, 1});
+          if (is_power_of_2(result) && result >= 1) {
+            cands.push_back({result, 1, 1});
+          }
         }
       }
     }
@@ -59,7 +61,9 @@ std::vector<dim3>
       for (int dim : dims) {
         if (dim % y == 0) {
           unsigned int result = dim / y;
-          cands.push_back({(unsigned int)x, result, 1});
+          if (is_power_of_2(result)) {
+            cands.push_back({(unsigned int)x, result, 1});
+          }
         }
       }
     }
@@ -68,17 +72,20 @@ std::vector<dim3>
 
   auto generate_2d_grids = [&](std::vector<int> const &dims) {
     std::vector<dim3> cands;
-    std::vector<int> size_to_try{/*128, 512, */ 1024, 2048, 4096}, dim_to_try;
+    std::vector<int> size_to_try{1024, 2048, 4096}, dim_to_try;
     for (size_t x : size_to_try) {
       for (int dim : dims) {
         if (dim % x == 0) {
-          dim_to_try.push_back(dim / x);
+          int result = dim / x;
+          if (is_power_of_2(result)) {
+            dim_to_try.push_back(result);
+          }
         }
       }
     }
     for (size_t x : dim_to_try) {
       for (size_t y : dim_to_try) {
-        if (x >= y) {
+        if (x >= y && is_power_of_2(x) && is_power_of_2(y)) {
           cands.push_back({(unsigned int)x, (unsigned int)y, 1});
         }
       }
@@ -418,6 +425,8 @@ std::vector<int> DimStrategy::get_forloop_range_cand(
   }
   forloop_range_to_explore = deduplicate(forloop_range_to_explore);
 #endif
+  auto is_power_of_2 = [](int v) { return v > 0 && (v & (v - 1)) == 0; };
+
   std::vector<int> results;
   for (int x : forloop_range_to_explore) {
     bool feasible = true;
@@ -427,18 +436,32 @@ std::vector<int> DimStrategy::get_forloop_range_cand(
       }
       int dim = input_tensors[i].dim[forloop_dim[i]];
       if (input_map[i].x == forloop_dim[i]) {
-        assert(dim % grid_dim.x == 0);
+        if (dim % grid_dim.x != 0) {
+          feasible = false;
+          break;
+        }
         dim /= grid_dim.x;
       }
       if (input_map[i].y == forloop_dim[i]) {
-        assert(dim % grid_dim.y == 0);
+        if (dim % grid_dim.y != 0) {
+          feasible = false;
+          break;
+        }
         dim /= grid_dim.y;
       }
       if (input_map[i].z == forloop_dim[i]) {
-        assert(dim % grid_dim.z == 0);
+        if (dim % grid_dim.z != 0) {
+          feasible = false;
+          break;
+        }
         dim /= grid_dim.z;
       }
       if (dim % x != 0) {
+        feasible = false;
+        break;
+      }
+      int tile_size = dim / x;
+      if (!is_power_of_2(tile_size) || tile_size < 8) {
         feasible = false;
         break;
       }
@@ -447,10 +470,8 @@ std::vector<int> DimStrategy::get_forloop_range_cand(
       results.push_back(x);
     }
   }
-  // Filter to power-of-2 values for better CUTLASS layout compatibility
-  // Non-power-of-2 forloop_range can cause "Shape Divisibility Condition" errors
-  results = filter(results, [](int x) {
-    return x > 0 && (x & (x - 1)) == 0;
+  results = filter(results, [&is_power_of_2](int v) {
+    return is_power_of_2(v) && v >= 1;
   });
   if (config.randomized_branches) {
     std::random_shuffle(results.begin(), results.end());

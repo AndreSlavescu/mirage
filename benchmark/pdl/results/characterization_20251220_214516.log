@@ -1,0 +1,89 @@
+Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)============================================================
+                 PDL Characterization Study                 
+============================================================
+GPU: NVIDIA H100 80GB HBM3
+Compute Capability: SM90
+
+=== Kernel Launch Overhead Measurement ===
+Minimal kernel launch overhead: ~3.81 us
+
+=== Individual Kernel Latency ===
+  silu(1024x64): 3.95us
+  silu(4096x64): 3.91us
+  silu(16384x64): 3.95us
+  silu(65536x64): 6.26us
+  silu(262144x64): 25.91us
+
+=== Tensor Size Sweep ===
+Finding where PDL impact changes with tensor size...
+PDL analysis: 1 chains identified, 3 ops in chains
+        8192 elements: 18.1us -> 18.0us (+0.75%)
+PDL analysis: 1 chains identified, 3 ops in chains
+       16384 elements: 18.2us -> 18.0us (+1.02%)
+PDL analysis: 1 chains identified, 3 ops in chains
+       32768 elements: 17.8us -> 17.8us (~0.36%)
+PDL analysis: 1 chains identified, 3 ops in chains
+       65536 elements: 18.1us -> 17.7us (+2.42%)
+PDL analysis: 1 chains identified, 3 ops in chains
+      131072 elements: 17.6us -> 17.8us (-1.15%)
+PDL analysis: 1 chains identified, 3 ops in chains
+      262144 elements: 17.7us -> 17.4us (+2.09%)
+PDL analysis: 1 chains identified, 3 ops in chains
+      524288 elements: 17.7us -> 17.7us (~0.26%)
+PDL analysis: 1 chains identified, 3 ops in chains
+     1048576 elements: 18.2us -> 17.9us (+1.53%)
+PDL analysis: 1 chains identified, 3 ops in chains
+     2097152 elements: 18.1us -> 18.1us (~0.01%)
+PDL analysis: 1 chains identified, 3 ops in chains
+     4194304 elements: 41.8us -> 41.8us (~0.02%)
+PDL analysis: 1 chains identified, 3 ops in chains
+     8388608 elements: 91.2us -> 91.2us (~0.04%)
+PDL analysis: 1 chains identified, 3 ops in chains
+    16777216 elements: 173.8us -> 173.8us (~0.02%)
+
+=== Chain Length vs Tensor Size ===
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 8 ops in chains
+PDL analysis: 1 chains identified, 16 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 8 ops in chains
+PDL analysis: 1 chains identified, 16 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 8 ops in chains
+PDL analysis: 1 chains identified, 16 ops in chains
+PDL analysis: 1 chains identified, 2 ops in chains
+PDL analysis: 1 chains identified, 4 ops in chains
+PDL analysis: 1 chains identified, 8 ops in chains
+PDL analysis: 1 chains identified, 16 ops in chains
+
+    Size  Chain     No PDL        PDL    Speedup
+--------------------------------------------------
+     256      2       16.1       15.9      +1.25%
+     256      4       19.2       19.0      +1.22%
+     256      8       25.8       25.4      +1.74%
+     256     16       39.0       38.8      +0.34%
+    1024      2       15.9       16.1      -1.28%
+    1024      4       19.8       19.7      +0.53%
+    1024      8       26.2       26.1      +0.45%
+    1024     16       39.9       40.0      -0.04%
+    4096      2       15.7       15.6      +0.30%
+    4096      4       19.3       19.2      +0.85%
+    4096      8       26.0       25.9      +0.32%
+    4096     16       42.7       42.7      +0.03%
+   16384      2       16.3       16.0      +2.04%
+   16384      4       19.3       19.1      +0.88%
+   16384      8       33.9       33.9      +0.06%
+   16384     16       75.7       75.8      -0.19%
+
+============================================================
+                        CONCLUSIONS                         
+============================================================
+
+Size sweep: 5 positive, 1 negative
+Best case: 65536 elements, 2.42% speedup
+Worst case: 131072 elements, -1.15% slowdown
+
+Results saved to /root/Desktop/projects/mirage/benchmark/pdl/paper_results/characterization_20251220_214516.json

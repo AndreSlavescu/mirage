@@ -1,0 +1,208 @@
+{
+  "timestamp": "2025-12-20T21:53:23.206199",
+  "gpu": {
+    "name": "NVIDIA H100 80GB HBM3",
+    "compute_capability": 90
+  },
+  "launch_overhead_us": 3.812169647216797,
+  "size_sweep": [
+    {
+      "elements": 8192,
+      "size_exp": 8,
+      "lat_no_pdl_us": 18.10927963256836,
+      "lat_pdl_us": 17.973920822143555,
+      "speedup_pct": 0.7474555209880943
+    },
+    {
+      "elements": 16384,
+      "size_exp": 9,
+      "lat_no_pdl_us": 18.166400909423828,
+      "lat_pdl_us": 17.981088638305664,
+      "speedup_pct": 1.0200824700617128
+    },
+    {
+      "elements": 32768,
+      "size_exp": 10,
+      "lat_no_pdl_us": 17.841344833374023,
+      "lat_pdl_us": 17.776927947998047,
+      "speedup_pct": 0.3610539787083669
+    },
+    {
+      "elements": 65536,
+      "size_exp": 11,
+      "lat_no_pdl_us": 18.115583419799805,
+      "lat_pdl_us": 17.676671981811523,
+      "speedup_pct": 2.4228390983453716
+    },
+    {
+      "elements": 131072,
+      "size_exp": 12,
+      "lat_no_pdl_us": 17.602144241333008,
+      "lat_pdl_us": 17.805376052856445,
+      "speedup_pct": -1.1545855364951083
+    },
+    {
+      "elements": 262144,
+      "size_exp": 13,
+      "lat_no_pdl_us": 17.7390079498291,
+      "lat_pdl_us": 17.36777687072754,
+      "speedup_pct": 2.0927386703445214
+    },
+    {
+      "elements": 524288,
+      "size_exp": 14,
+      "lat_no_pdl_us": 17.66828727722168,
+      "lat_pdl_us": 17.714624404907227,
+      "speedup_pct": -0.2622615704538926
+    },
+    {
+      "elements": 1048576,
+      "size_exp": 15,
+      "lat_no_pdl_us": 18.209760665893555,
+      "lat_pdl_us": 17.931968688964844,
+      "speedup_pct": 1.5255114113004717
+    },
+    {
+      "elements": 2097152,
+      "size_exp": 16,
+      "lat_no_pdl_us": 18.101728439331055,
+      "lat_pdl_us": 18.102943420410156,
+      "speedup_pct": -0.0067119616956670125
+    },
+    {
+      "elements": 4194304,
+      "size_exp": 17,
+      "lat_no_pdl_us": 41.78092956542969,
+      "lat_pdl_us": 41.78879928588867,
+      "speedup_pct": -0.01883567584742281
+    },
+    {
+      "elements": 8388608,
+      "size_exp": 18,
+      "lat_no_pdl_us": 91.18582153320312,
+      "lat_pdl_us": 91.22013092041016,
+      "speedup_pct": -0.03762579163092621
+    },
+    {
+      "elements": 16777216,
+      "size_exp": 19,
+      "lat_no_pdl_us": 173.82188415527344,
+      "lat_pdl_us": 173.84982299804688,
+      "speedup_pct": -0.01607325965266836
+    }
+  ],
+  "chain_sweep": [
+    {
+      "size": 256,
+      "chain_len": 2,
+      "lat_no_pdl_us": 16.114431381225586,
+      "lat_pdl_us": 15.912639617919924,
+      "speedup_pct": 1.2522425305106544
+    },
+    {
+      "size": 256,
+      "chain_len": 4,
+      "lat_no_pdl_us": 19.238399505615234,
+      "lat_pdl_us": 19.00275230407715,
+      "speedup_pct": 1.2248794473225597
+    },
+    {
+      "size": 256,
+      "chain_len": 8,
+      "lat_no_pdl_us": 25.804800033569336,
+      "lat_pdl_us": 25.354944229125977,
+      "speedup_pct": 1.743302811330234
+    },
+    {
+      "size": 256,
+      "chain_len": 16,
+      "lat_no_pdl_us": 38.96275329589844,
+      "lat_pdl_us": 38.83097457885742,
+      "speedup_pct": 0.338217158423678
+    },
+    {
+      "size": 1024,
+      "chain_len": 2,
+      "lat_no_pdl_us": 15.902527809143065,
+      "lat_pdl_us": 16.106176376342773,
+      "speedup_pct": -1.280605005970323
+    },
+    {
+      "size": 1024,
+      "chain_len": 4,
+      "lat_no_pdl_us": 19.8209285736084,
+      "lat_pdl_us": 19.715904235839844,
+      "speedup_pct": 0.5298658807962953
+    },
+    {
+      "size": 1024,
+      "chain_len": 8,
+      "lat_no_pdl_us": 26.198976516723633,
+      "lat_pdl_us": 26.08198356628418,
+      "speedup_pct": 0.4465554231279716
+    },
+    {
+      "size": 1024,
+      "chain_len": 16,
+      "lat_no_pdl_us": 39.94643020629883,
+      "lat_pdl_us": 39.963584899902344,
+      "speedup_pct": -0.042944246869925914
+    },
+    {
+      "size": 4096,
+      "chain_len": 2,
+      "lat_no_pdl_us": 15.697279930114748,
+      "lat_pdl_us": 15.6496639251709,
+      "speedup_pct": 0.3033392100786699
+    },
+    {
+      "size": 4096,
+      "chain_len": 4,
+      "lat_no_pdl_us": 19.34592056274414,
+      "lat_pdl_us": 19.181568145751953,
+      "speedup_pct": 0.8495456003716515
+    },
+    {
+      "size": 4096,
+      "chain_len": 8,
+      "lat_no_pdl_us": 25.986047744750977,
+      "lat_pdl_us": 25.90239906311035,
+      "speedup_pct": 0.32189843743176194
+    },
+    {
+      "size": 4096,
+      "chain_len": 16,
+      "lat_no_pdl_us": 42.720062255859375,
+      "lat_pdl_us": 42.706241607666016,
+      "speedup_pct": 0.03235165742639752
+    },
+    {
+      "size": 16384,
+      "chain_len": 2,
+      "lat_no_pdl_us": 16.299455642700195,
+      "lat_pdl_us": 15.966208457946777,
+      "speedup_pct": 2.0445295355778623
+    },
+    {
+      "size": 16384,
+      "chain_len": 4,
+      "lat_no_pdl_us": 19.2739200592041,
+      "lat_pdl_us": 19.104000091552734,
+      "speedup_pct": 0.8816056470578922
+    },
+    {
+      "size": 16384,
+      "chain_len": 8,
+      "lat_no_pdl_us": 33.88230514526367,
+      "lat_pdl_us": 33.8603515625,
+      "speedup_pct": 0.06479365164073175
+    },
+    {
+      "size": 16384,
+      "chain_len": 16,
+      "lat_no_pdl_us": 75.67635345458984,
+      "lat_pdl_us": 75.82208251953125,
+      "speedup_pct": -0.19256882538460585
+    }
+  ]
+}
