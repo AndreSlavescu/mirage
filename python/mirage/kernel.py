@@ -218,6 +218,10 @@ class KNGraph:
 
         self.backend = "cuda"
 
+        self.pdl_enabled = False
+        self.pdl_chains_count = 0
+        self.pdl_kernels_optimized = 0
+
     def new_input(
         self, dims: tuple, strides: tuple = None, dtype: dtype = float16
     ) -> DTensor:
@@ -443,8 +447,7 @@ class KNGraph:
 
         if result.get("pdl_enabled", False):
             print(f"PDL analysis: {result['pdl_chains_count']} chains identified, "
-                  f"{result['pdl_kernels_optimized']} ops in chains "
-                  f"(PDL applies to KN_CUSTOMIZED_OP only)")
+                  f"{result['pdl_kernels_optimized']} ops in chains")
         if result["max_smem_size"] > get_shared_memory_capacity(target_cc):
             # the transpiled kernel exceeds shared memory limit
             print(
@@ -533,6 +536,11 @@ class KNGraph:
                 self._valid_cuda_kernels = True
                 self._cached_results = result
                 self._error_message = "No error"
+
+                self.pdl_enabled = result.get("pdl_enabled", False)
+                self.pdl_chains_count = result.get("pdl_chains_count", 0)
+                self.pdl_kernels_optimized = result.get("pdl_kernels_optimized", 0)
+
                 tempdir_obj.cleanup()
                 return self._cached_results
             except ImportError:
